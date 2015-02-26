@@ -1,3 +1,23 @@
+/* DISPOSITIVOS HARDWARE E INTERFACES
+ * Practica 2: Reloj
+ * 
+ * Autor: Diego Noceda Davila
+ * Fecha: 26/02/2015
+ *
+ * El programa es un reloj que se actualiza una vez por segundo mediante 
+ * un timer (librera MsTimer2) y envia la hora por el puerto serie. La funcion
+ * "contar" es la encargada de actualizar la hora cada vez que salta la 
+ * interrupcion del timer, cambiar el estado de los leds e imprimir en el 
+ * puerto serie.
+ * Para la puesta en hora del arduino se lee la entrada del puerto serie con
+ * las funciones "Serial.available()" y "Serial.readBytes()", luego se "parsean"
+ * los valores de hora, minuto y segundo con la funcion "strtok" de C. Tras leer los
+ * nuevos valores de la hora se comprueba que ninguno se salga del limite y se actualizan
+ * los valores. Si alguno de los valores excede el limite se pasa al modo "power-down",
+ * del cual podremos salir accionando el pulsador (a traves de la interrupcion externa 1,
+ * funcion "interrupcion")
+*/
+
 #include <MsTimer2.h>
 #include <avr/sleep.h>
 
@@ -31,24 +51,30 @@ void setup() {
   attachInterrupt(1,interrupcion, RISING);
 }
 
+//Manejo de la interrupcion, salir del modo power-down
 void interrupcion() {
  sleep_disable(); 
 }
 
 void loop() {
-  if (Serial.available() > 0) {  //Leemos la hora enviada por serial
+  //Lectura de la hora enviada por puerto serial
+  if (Serial.available() > 0) {  
     Serial.readBytes(leido, 8);
     leido[8] = 0;
     
-    token = strtok(leido, ":"); //Valor de las horas
-    horas_prov = atoi(token);
-      
-    token = strtok(0,":"); //Valor de los minutos
+    //Valor leido, provisional, de las horas
+    token = strtok(leido, ":"); 
+    horas_prov = atoi(token); 
+    
+    //Valor leido, provisional, de los minutos  
+    token = strtok(0,":"); 
     minutos_prov = atoi(token);
-      
-    token = strtok(0,":"); //Valor de los segundos
+    
+    //Valor leido, provisional, de los segundos
+    token = strtok(0,":"); 
     segundos_prov = atoi(token);
       
+    //Paso condicional al modo power-down  
     if (horas_prov > 23 || minutos_prov > 59 || segundos_prov > 59){
       Serial.println("modo power down!");
       delay(20);
@@ -56,23 +82,28 @@ void loop() {
       digitalWrite(ledVerde,LOW);
       sleep_mode();
     }    
-    else {
+    else { 
+      //Actualiza la hora
       horas = horas_prov;
       minutos = minutos_prov;
       segundos = segundos_prov;
     }
       
-//    Serial.println(token);
-    Serial.flush();
+    //limpia la entrada
+    Serial.flush();  
     leido[0] = 0;
  
   }  
 }
 
 void contar() {
+  //Cambio del estado de los led
   digitalWrite(ledVerde, estadoLed);
   digitalWrite(ledRojo, !estadoLed);
   estadoLed = !estadoLed;
+  //---
+  
+  //Actualizacion de la hora
   segundos = segundos + 1;
   if (segundos == 60) {
     segundos = 0;
@@ -85,9 +116,13 @@ void contar() {
       }
     }
   }
+  //-----
+  
+  //Impresion de la hora por el puerto serie
   Serial.print(horas);
   Serial.print(":"); 
   Serial.print(minutos);
   Serial.print(":");
   Serial.println(segundos);
+  //-----
 }
