@@ -1,7 +1,7 @@
-/*
-El watchdog timer está en 8s porque el delay del premio puede ser de hasta 4 segundos, entonces
-un watchdog de 4s no es suficiente
+//El programa calcula los premios con el algoritmo dado, pinta la secuencia de LEDs a través del 8574A, actualiza la LCD y por último la memoria.
+//El watchdog está activado para comprobar el funcionamiento correcto.
 
+/* Entradas que indican los LEDs en el expansor I/O
 p3 p2 p1 p0
 
 p0 : 1110 = 14
@@ -165,11 +165,11 @@ void loop() {
     Wire.write(x[premio-1]);
     Wire.endTransmission(0x38);
     
-    delay(premio*1000);
+    //delay(premio*1000);
     
-    Wire.beginTransmission(0x38);
-    Wire.write(15);
-    Wire.endTransmission(0x38);
+    //Wire.beginTransmission(0x38);
+    //Wire.write(15);
+    //Wire.endTransmission(0x38);
   }
   wdt_reset();
 }
