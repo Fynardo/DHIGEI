@@ -27,8 +27,18 @@
     ch[1] = 512 + 256*cos(n*20*pi/N); // CH2: Coseno com apmplitud 1,25 y 10 Hz
     ch[2] = 512 + (205 + 102*sin(n*2*pi/N))*cos(n*20*pi/N); // CH3: Onda AM con portadora CH2 y moduladora CH1
     
+    //CH4: Onda triangular
+    if (n < N/4) ch[3] = (float)512 - 256*(0 - (float)4*n/N); 
+    else if (n < 3*N/4) ch[3] = (float)512 + 256*(2 - (float)4*n/N); 
+    else if (n < N) ch[3] = (float)512 - 256*(4 - (float)4*n/N);
     
+    //CH5 Onda PWM
+    if (n < N/5) ch[4] = 768;
+    else ch[4] = 256;
     
+    //CH6 Onda BPSK
+    if (n < N/5) ch[5] = 512 + 256*cos(20*pi*n/N);
+    else ch[5] = 512 - 256*cos(20*pi*n/N);
     
     if (n++== N) { // Incrementa número índice del punto
       n= 0;
