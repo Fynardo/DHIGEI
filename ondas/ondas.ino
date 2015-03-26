@@ -1,4 +1,11 @@
-/* Práctica 5: Generación de ondas */
+/* DISPOSITIVOS HARDWARE E INTERFACES
+ * Práctica 5: Generación de ondas *
+ * Autor: Diego Noceda Davila
+ * Fecha: 26/03/2015
+ *
+ * Programa que genera seis ondas y las envía por el puerto serie al PC para la visualización en Visorduino.
+ * Utiliza la librería MsTimer2 para ejecutar la rutina de actualización de las señales.
+*/
 
   #include <MsTimer2.h>
   
@@ -23,9 +30,14 @@
   }
 
   void actualizar() {
-    ch[0] = 512 + 256*sin(n*2*pi/N); // CH1: Seno con amplitud 1,25V y 1 Hz
-    ch[1] = 512 + 256*cos(n*20*pi/N); // CH2: Coseno com apmplitud 1,25 y 10 Hz
-    ch[2] = 512 + (205 + 102*sin(n*2*pi/N))*cos(n*20*pi/N); // CH3: Onda AM con portadora CH2 y moduladora CH1
+    // CH1: Seno con amplitud 1,25V y 1 Hz
+    ch[0] = 512 + 256*sin(n*2*pi/N); 
+    
+    // CH2: Coseno com apmplitud 1,25 y 10 Hz
+    ch[1] = 512 + 256*cos(n*20*pi/N); 
+    
+    // CH3: Onda AM con portadora CH2 y moduladora CH1
+    ch[2] = 512 + (205 + 102*sin(n*2*pi/N))*cos(n*20*pi/N);
     
     //CH4: Onda triangular
     if (n < N/4) ch[3] = (float)512 - 256*(0 - (float)4*n/N); 
