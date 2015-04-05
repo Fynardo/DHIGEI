@@ -29,6 +29,9 @@ const int potF = A4;
 //Switches
 const int sw1 = 3;
 const int sw2 = 2;
+//Seleccion de señales
+int sel1=0;
+int sel2=0;
 //PWM
 const int pg1 = 9;
 const int pg2 = 10;
@@ -42,10 +45,8 @@ void setup() {
   Serial.begin(1000000);  
   //Serial.begin(9600);  
   
-  pinMode(sw1, INPUT);
-  pinMode(sw2, INPUT);
-  //pinMode(sg1, OUTPUT);
-  //pinMode(sg2, OUTPUT);
+  pinMode(sw1, INPUT_PULLUP);
+  pinMode(sw2, INPUT_PULLUP);
   
   MsTimer2::set(Ts, actualizar); // Int. Timer2 cada Ts ms
   MsTimer2::start();
@@ -54,37 +55,67 @@ void setup() {
 void loop() {
   Am1 = map(analogRead(potA1), 0, 1023, 0, 511);
   Am2 = map(analogRead(potA2), 0, 1023, 0, 511);
- // N = map(analogRead(potF), 0, 1023, 50, 4000);
+  
+  if (digitalRead(sw1) == LOW){
+    while(digitalRead(sw1) != HIGH);
+    sel1 = sel1+1;
+    if (sel1 == 4)
+      sel1 = 0;
+  }
+  
+  if (digitalRead(sw2) == LOW){
+    while(digitalRead(sw2) != HIGH);
+    sel2 = sel2+1;
+    if (sel2 == 4)
+      sel2 = 0;
+  }
+  
+  //N = map(analogRead(potF), 0, 1023, 50, 4000);
   Ns[0] = analogRead(potF);
-  Ns[1] = analogRead(potF);
-  Ns[2] = analogRead(potF);
-  Ns[3] = analogRead(potF); 
-  N = map(Ns[0] + Ns[1] + Ns[2] + Ns[3] /4, 0, 1023, 50, 4000);
- 
- /* Serial.print(analogRead(potA1));
-  Serial.print(" - "); 
-  Serial.print(analogRead(potA2));
-  Serial.print(" - "); 
-  Serial.println(analogRead(potF)); 
   delay(50);
- */
+  Ns[1] = analogRead(potF);
+  delay(50);
+  Ns[2] = analogRead(potF);
+  delay(50);
+  Ns[3] = analogRead(potF); 
+  delay(50);
+  //N = analogRead(potF);
+  //sN = map(Ns[0] + Ns[1] + Ns[2] + Ns[3] /4, 0, 1023, 50, 4000);
 }
 
 void actualizar() {
-  sg1 = dc + Am1*sin(n*2*pi/N); 
+  if(sel1 == 0)
+    sg1 = dc + Am1*sin(n*2*pi/N); 
+  if(sel1 == 2){
+    //sg1 = dc + Am1;
+    if (n<N/2) sg1 = dc - Am1;
+    else sg1 = dc + Am1;
+  }
+  if(sel1 == 3)
+     sg1 = Am1*2; 
+
+  if(sel2 == 0)
+    sg2 = dc + Am2*sin(n*2*pi/N); 
+  if(sel2 == 2){
+    //sg2 = dc + Am2;
+    if (n<N/2) sg2 = dc - Am2;
+    else sg2 = dc + Am2;
+  }
+  if(sel2 == 3)
+     sg2 = Am2*2;      
+
   sg1 = map(sg1, 0, 1023, 0, 255);
   analogWrite(pg1, sg1);
   ch[0] = analogRead(pr1);
   
-  sg2 = dc + Am2*sin(n*2*pi/N); 
   sg2 = map(sg2, 0, 1023, 0, 255);
   analogWrite(pg2, sg2);
   ch[1] = analogRead(pr2);
   
-  ch[2] = N;
-  ch[3] = 0;
-  ch[4] = 0;
-  ch[5] = 0;
+  ch[2] = 0;
+  ch[3] = N;
+  ch[4] = sel1;
+  ch[5] = sel2;
     
     if (n++== N) { // Incrementa número índice del punto
       n= 0;
