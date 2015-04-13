@@ -40,6 +40,8 @@ const int pr1 = A0;
 const int pr2 = A1;
 //Señales
 unsigned int sg1, sr1, sg2, sr2;
+float xmed1 = 0, xmed2 = 0, xef1 = 0, xef2 = 0;
+float acumMed1 = 0, acumMed2 = 0, acumEf1 = 0, acumEf2 = 0;
 
 void setup() {
   Serial.begin(1000000);  
@@ -86,8 +88,12 @@ void loop() {
 void actualizar() {
   if(sel1 == 0)
     sg1 = dc + Am1*sin(n*2*pi/N); 
+  if(sel1 == 1){
+    if (n < N/4) sg1 = (float)dc - Am1*(0 - (float)4*n/N); 
+    else if (n < 3*N/4) sg1 = (float)dc + Am1*(2 - (float)4*n/N); 
+    else if (n < N) sg1 = (float)dc - Am1*(4 - (float)4*n/N);  
+  }
   if(sel1 == 2){
-    //sg1 = dc + Am1;
     if (n<N/2) sg1 = dc - Am1;
     else sg1 = dc + Am1;
   }
@@ -96,6 +102,11 @@ void actualizar() {
 
   if(sel2 == 0)
     sg2 = dc + Am2*sin(n*2*pi/N); 
+  if(sel2 == 1){
+    if (n < N/4) sg2 = (float)dc - Am2*(0 - (float)4*n/N); 
+    else if (n < 3*N/4) sg2 = (float)dc + Am2*(2 - (float)4*n/N); 
+    else if (n < N) sg2 = (float)dc - Am2*(4 - (float)4*n/N);
+  }
   if(sel2 == 2){
     //sg2 = dc + Am2;
     if (n<N/2) sg2 = dc - Am2;
@@ -111,15 +122,34 @@ void actualizar() {
   sg2 = map(sg2, 0, 1023, 0, 255);
   analogWrite(pg2, sg2);
   ch[1] = analogRead(pr2);
+
+  //Valores medio y eficaz
+  acumMed1 = (acumMed1 + ch[0]);
+  acumEf1 = (acumEf1 + ch[0]*ch[0]);
   
-  ch[2] = 0;
-  ch[3] = N;
-  ch[4] = sel1;
-  ch[5] = sel2;
+  acumMed2 = (acumMed2 + ch[1]);
+  acumEf2 = (acumEf2 + ch[1]*ch[1]);
+  
+  if(n++==N){  
+    xmed1 = acumMed1/N;
+    xmed2 = acumMed2/N;
+    acumMed1 = 0;
+    acumMed2 = 0;
+    xef1 = (sqrt(acumEf1/N));
+    xef2 = (sqrt(acumEf2/N));
+    acumEf1 = 0;
+    acumEf2 = 0;
+    n = 0; 
+  }
+  
+  ch[2] = xmed1;
+  ch[3] = xmed2;
+  ch[4] = xef1;
+  ch[5] = xef2;
     
-    if (n++== N) { // Incrementa número índice del punto
-      n= 0;
-    }  
+    //if (n++== N) { // Incrementa número índice del punto
+   //   n= 0;
+   // }  
     // Envía mensaje de datos cada Ts ms a Visorduino
     Serial.print("A6"); // Cabecera de mensaje
     Serial.write(Ts); // Envía intervalo tiempo Ts  
